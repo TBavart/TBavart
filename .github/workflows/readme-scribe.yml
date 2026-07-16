@@ -4,6 +4,7 @@ on:
   push:
   schedule:
     - cron: "0 */1 * * *"
+  workflow_dispatch:
 
 jobs:
   markscribe:
@@ -12,12 +13,18 @@ jobs:
     steps:
       - uses: actions/checkout@master
 
-      - uses: charmbracelet/readme-scribe@master
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+
+      - name: Install markscribe
+        run: go install github.com/taciturnaxolotl/markscribe@latest
+
+      - name: generate readme
         env:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
-        with:
-          template: "templates/README.md.tpl"
-          writeTo: "README.md"
+        run: markscribe -write README.md templates/README.md.tpl
 
       - uses: stefanzweifel/git-auto-commit-action@v4
         env:
